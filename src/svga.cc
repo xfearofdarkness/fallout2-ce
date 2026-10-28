@@ -5,6 +5,10 @@
 
 #include <SDL.h>
 
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+
 #include "config.h"
 #include "draw.h"
 #include "interface.h"
@@ -177,9 +181,20 @@ int _GNW95_init_window(int width, int height, bool fullscreen, int scale)
 
         Uint32 windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI;
 
+#if defined(__APPLE__) && !TARGET_OS_IPHONE
+        // CE: Use native macOS fullscreen (own Space) so Cmd+Tab, Dock, menu
+        // bar and Ctrl+Cmd+F work, and the display mode is never changed.
+        // Spaces need a resizable window.
+        windowFlags |= SDL_WINDOW_RESIZABLE;
+
+        if (fullscreen) {
+            windowFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+        }
+#else
         if (fullscreen) {
             windowFlags |= SDL_WINDOW_FULLSCREEN;
         }
+#endif
 
         gSdlWindow = SDL_CreateWindow(gProgramWindowTitle, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width * scale, height * scale, windowFlags);
         if (gSdlWindow == nullptr) {
